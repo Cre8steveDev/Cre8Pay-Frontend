@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { mmkvStorage } from "@/lib/mmkv-storage";
+import { asyncStorage } from "@/lib/async-storage";
 import { AppState, SessionState, UserState } from "@/types/store";
 
 export const useAppStore = create<AppState>()((set) => ({
@@ -19,7 +19,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => asyncStorage),
     }
   )
 );
@@ -33,7 +33,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: "user-storage",
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => asyncStorage),
     }
   )
 );
