@@ -7,24 +7,30 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 // To hydrate persisted stores
-import { useSessionStore } from "@/store";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useAppStore, useSessionStore } from "@/store";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
+import {
+  setStatusBarStyle,
+  setStatusBarBackgroundColor,
+} from "expo-status-bar";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const path = usePathname();
 
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -41,21 +47,33 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    setStatusBarStyle("light");
+    if (Platform.OS === "android")
+      setStatusBarBackgroundColor(Colors.primary600, true);
+  }, [path]);
+
   // Hydrate the store
   useEffect(() => {
     useSessionStore.persist.rehydrate();
   }, []);
+
+  const isLoading = useAppStore((state) => state.isLoading);
 
   if (!loaded) {
     return null;
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" />
-    </Stack>
+    <SafeAreaView style={globalStyles.container}>
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+
+      {isLoading && <LoadingOverlay />}
+    </SafeAreaView>
   );
 }
 

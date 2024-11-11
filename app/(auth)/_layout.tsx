@@ -22,7 +22,7 @@ export default function TabLayout() {
             width: "100%",
             paddingHorizontal: 20,
             marginHorizontal: "auto",
-            backgroundColor: Colors.gray,
+            backgroundColor: Colors.primary600,
 
             ...Platform.select({
               ios: {
