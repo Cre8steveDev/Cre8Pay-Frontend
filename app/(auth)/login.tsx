@@ -12,12 +12,15 @@ import {
 
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
-import { useAppStore } from "@/store";
+import { useAppStore, useSessionStore, useUserStore } from "@/store";
+import { useRouter } from "expo-router";
 import CustomTextInput from "@/components/form/CustomTextInput";
 import CustomPasswordInput from "@/components/form/CustomPasswordInput";
 
 import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BACKEND_API from "@/constants/API_URL";
+import { handleError } from "@/lib/errorHandler";
 
 /**
  * Login Page Component
@@ -29,6 +32,13 @@ const Login = () => {
 
   const [hasPreviousLogin, setHasPreviousLogin] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+
+  const router = useRouter();
+
+  // Retrieve Global store
+  const { setUser } = useUserStore((state) => state);
+  const { setToken } = useSessionStore((state) => state);
+  const { setError } = useAppStore((state) => state);
 
   // Attempt Login with Fingerprint
   useEffect(() => {
@@ -51,6 +61,7 @@ const Login = () => {
     }
   };
 
+  // Handle biometric login feature
   const handleBiometricLogin = async () => {
     if (!hasPreviousLogin || !isBiometricEnabled)
       return Alert.alert(
@@ -79,24 +90,54 @@ const Login = () => {
       });
 
       if (result.success) {
-        const email = await AsyncStorage.getItem("@cre8pay:user_email");
-        const userId = await AsyncStorage.getItem("@cre8pay:user_id");
+        const email = await AsyncStorage.getItem("@cre8pay:userEmail");
+        const bioAuthToken = await AsyncStorage.getItem(
+          "@cre8pay:bioAuthToken"
+        );
 
-        // Send this to the backend and log the user in.
+        await loginUser({ email: email!, bioAuthToken: bioAuthToken! });
       }
     } catch (error) {
-      console.log("Biometric authentication error:", error);
+      setError({
+        title: "Biometric Error",
+        message:
+          "An error occured with biometric login. Please sign in using email and password.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Attempt to login - email and password
-  const handleUserLogin = async () => {
+  const loginUser = async ({
+    email,
+    password,
+    bioAuthToken,
+  }: {
+    email: string;
+    password?: string;
+    bioAuthToken?: string;
+  }) => {
     setIsLoading(true);
     try {
       await AsyncStorage.setItem("@cre8pay:has_previous_login", "true");
-    } catch (error) {
+      setUser({
+        id: "489dfasdf",
+        email: "cre8stevedev@gmail.com",
+        name: "Stephen",
+        image: undefined,
+      });
+      setToken("54849dfhjdfaskdfjhadgfgfg");
+
+      // const res = await BACKEND_API.post("/auth/login", {
+      //   email,
+      //   password,
+      //   bioAuthToken,
+      // });
+
+      // setUser(res.data.user);
+      // setToken(res.data.token);
+    } catch (error: any) {
+      handleError(error);
     } finally {
       setIsLoading(false);
     }
@@ -145,9 +186,11 @@ const Login = () => {
         />
       </View>
 
-      {/* Next Button */}
+      {/* Login button */}
       <TouchableOpacity
-        onPress={handleUserLogin}
+        onPress={() =>
+          loginUser({ email: userData.email, password: userData.password })
+        }
         disabled={userData.email.length === 0 || userData.password.length === 0}
         style={[
           userData.email.length !== 0 && userData.password.length !== 0

@@ -1,14 +1,18 @@
 import React from "react";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Platform } from "react-native";
+import { useSessionStore, useUserStore } from "@/store";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const token = useSessionStore((state) => state.token);
+  const user = useUserStore((state) => state.user);
+
+  if (token && user) return <Redirect href={"/(tabs)/"} />;
 
   return (
     <>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Colors } from "@/constants/Colors";
 import { StatusBar } from "expo-status-bar";
+
 import {
   ScrollView,
   StyleSheet,
@@ -11,16 +12,25 @@ import {
 
 import useInputRefs from "@/hooks/useInputRefs";
 import validateUserData from "@/lib/validateUserData";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import DropdownSelect from "@/components/form/DropDownSelect";
 import CustomTextInput from "@/components/form/CustomTextInput";
 import CustomPasswordInput from "@/components/form/CustomPasswordInput";
 
+// OTP Authentication
+import OTPAuthScreen from "@/components/auth/OTPVerification";
+import { useAppStore } from "@/store";
+
 const Register = () => {
   const inputs = Array(4);
   const [newUser, setNewUser] = useState(newUserData);
-  const { setRef, focusNext } = useInputRefs(inputs.length);
   const [isInputValid, setIsInputValid] = useState(false);
+  const { setIsLoading, setError } = useAppStore((state) => state);
+
+  const { setRef, focusNext } = useInputRefs(inputs.length);
+
+  // show OTP Verification
+  const [showOTPModal, setShowOTPModal] = useState(false);
 
   useEffect(() => {
     const result = validateUserData(newUser);
@@ -31,6 +41,13 @@ const Register = () => {
       setIsInputValid(false);
     }
   }, [newUser]);
+
+  // Handle Register function
+  const handleRegister = () => {
+    try {
+      setShowOTPModal(true);
+    } catch (error) {}
+  };
 
   // Return View
   return (
@@ -130,6 +147,7 @@ const Register = () => {
 
       {/* Next Button */}
       <TouchableOpacity
+        onPress={handleRegister}
         disabled={!isInputValid}
         style={[
           isInputValid ? styles.activeBtn : styles.disabledBtn,
@@ -138,6 +156,15 @@ const Register = () => {
       >
         <Text style={styles.btnText}>Register Now</Text>
       </TouchableOpacity>
+
+      {/* OTP Modal */}
+      {showOTPModal && (
+        <OTPAuthScreen
+          userEmail={newUser.email}
+          showOTPModal={showOTPModal}
+          setShowOTPModal={setShowOTPModal}
+        />
+      )}
     </ScrollView>
   );
 };

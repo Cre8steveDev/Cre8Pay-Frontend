@@ -23,7 +23,8 @@ import {
   setStatusBarStyle,
   setStatusBarBackgroundColor,
 } from "expo-status-bar";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { LoadingOverlay } from "@/components/shared/LoadingOverlay";
+import { ErrorOverlay } from "@/components/shared/ErrorOverlay";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -73,6 +74,7 @@ export default function RootLayout() {
       </Stack>
 
       {isLoading && <LoadingOverlay />}
+      <ErrorOverlay />
     </SafeAreaView>
   );
 }
